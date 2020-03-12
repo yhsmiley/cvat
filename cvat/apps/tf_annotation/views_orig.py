@@ -113,14 +113,10 @@ def run_tensorflow_annotation(image_list, labels_mapping, treshold):
             od_graph_def.ParseFromString(serialized_graph)
             tf.import_graph_def(od_graph_def, name='')
 
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth=True
-        sess = tf.Session(graph=detection_graph, config=config)
-            
         try:
-            # config = tf.ConfigProto()
-            # config.gpu_options.allow_growth=True
-            # sess = tf.Session(graph=detection_graph, config=config)
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth=True
+            sess = tf.Session(graph=detection_graph, config=config)
             for image_num, image_path in enumerate(image_list):
 
                 job.refresh()
@@ -254,8 +250,6 @@ def get_meta_info(request):
 @permission_required(perm=['engine.task.change'],
     fn=objectgetter(TaskModel, 'tid'), raise_exception=True)
 def create(request, tid):
-    import json
-
     slogger.glob.info('tf annotation create request for task {}'.format(tid))
     try:
         db_task = TaskModel.objects.get(pk=tid)
@@ -267,10 +261,25 @@ def create(request, tid):
         db_labels = db_task.label_set.prefetch_related('attributespec_set').all()
         db_labels = {db_label.id:db_label.name for db_label in db_labels}
 
-        model_json_path = os.environ.get('TF_ANNOTATION_MODEL_JSON_PATH')
-        with tf.gfile.GFile(model_json_path + '.json', 'rb') as fid:
-            tf_annotation_labels = json.loads(fid.read().decode('utf-8'))
-                
+        tf_annotation_labels = {
+            "person": 1, "bicycle": 2, "car": 3, "motorcycle": 4, "airplane": 5,
+            "bus": 6, "train": 7, "truck": 8, "boat": 9, "traffic_light": 10,
+            "fire_hydrant": 11, "stop_sign": 13, "parking_meter": 14, "bench": 15,
+            "bird": 16, "cat": 17, "dog": 18, "horse": 19, "sheep": 20, "cow": 21,
+            "elephant": 22, "bear": 23, "zebra": 24, "giraffe": 25, "backpack": 27,
+            "umbrella": 28, "handbag": 31, "tie": 32, "suitcase": 33, "frisbee": 34,
+            "skis": 35, "snowboard": 36, "sports_ball": 37, "kite": 38, "baseball_bat": 39,
+            "baseball_glove": 40, "skateboard": 41, "surfboard": 42, "tennis_racket": 43,
+            "bottle": 44, "wine_glass": 46, "cup": 47, "fork": 48, "knife": 49, "spoon": 50,
+            "bowl": 51, "banana": 52, "apple": 53, "sandwich": 54, "orange": 55, "broccoli": 56,
+            "carrot": 57, "hot_dog": 58, "pizza": 59, "donut": 60, "cake": 61, "chair": 62,
+            "couch": 63, "potted_plant": 64, "bed": 65, "dining_table": 67, "toilet": 70,
+            "tv": 72, "laptop": 73, "mouse": 74, "remote": 75, "keyboard": 76, "cell_phone": 77,
+            "microwave": 78, "oven": 79, "toaster": 80, "sink": 81, "refrigerator": 83,
+            "book": 84, "clock": 85, "vase": 86, "scissors": 87, "teddy_bear": 88, "hair_drier": 89,
+            "toothbrush": 90
+            }
+
         labels_mapping = {}
         for key, labels in db_labels.items():
             if labels in tf_annotation_labels.keys():

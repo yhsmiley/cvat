@@ -71,15 +71,14 @@ RUN if [ "$OPENVINO_TOOLKIT" = "yes" ]; then \
     fi
 
 # Tensorflow annotation support
-COPY models/ssdlite_mobilenet_v2_coco_2018_05_09/frozen_inference_graph.pb /tmp/frozen_inference_graph.pb
-COPY models/ssdlite_mobilenet_v2_coco_2018_05_09/labels_mapping.json /tmp/labels_mapping.json
+COPY models/custom_faster_rcnn_tf12_500000/frozen_inference_graph.pb /tmp/frozen_inference_graph.pb
+COPY models/custom_faster_rcnn_tf12_500000/labels_mapping.json /tmp/labels_mapping.json
 ARG TF_ANNOTATION
 ENV TF_ANNOTATION=${TF_ANNOTATION}
 ENV TF_ANNOTATION_MODEL_PATH=${HOME}/rcnn/inference_graph
 ENV TF_ANNOTATION_MODEL_JSON_PATH=${HOME}/rcnn/labels_mapping
 RUN if [ "$TF_ANNOTATION" = "yes" ]; then \
-        # bash -i /tmp/components/tf_annotation/install.sh; \
-        bash /tmp/components/tf_annotation/install.sh; \
+        bash -i /tmp/components/tf_annotation/install.sh; \
     fi
 
 ARG WITH_TESTS
